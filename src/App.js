@@ -9,6 +9,7 @@ function App() {
         <p>
           Edit <code>src/App.js</code> and save to reload.
         </p>
+        hola climate guardian
         <a
           className="App-link"
           href="https://reactjs.org"

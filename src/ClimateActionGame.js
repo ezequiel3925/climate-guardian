@@ -10,15 +10,45 @@ import { Label } from "./ui/label";
 import './ClimateActionGame.css';
 import { Chart, registerables } from 'chart.js';
 
-// Chart.js setup
 const chartOptions = {
   responsive: true,
   scales: {
     y: {
       beginAtZero: true,
+      title: {
+        display: true,
+        text: 'Temperatura (°C) / CO2 (ppm)',
+      },
+      ticks: {
+        callback: function(value) {
+          return value.toFixed(2); // Mostrar los valores con dos decimales
+        }
+      }
+    },
+    x: {
+      title: {
+        display: true,
+        text: 'Año',
+      }
     },
   },
+  plugins: {
+    legend: {
+      display: true,
+      position: 'top',
+    },
+    tooltip: {
+      callbacks: {
+        label: function(context) {
+          const label = context.dataset.label || '';
+          const value = context.raw; // Obtiene el valor actual
+          return label ? `${label}: ${value}` : value;
+        }
+      }
+    }
+  }
 };
+
 
 const fetchNASAData = async () => {
   return [
@@ -78,29 +108,37 @@ export default function ClimateActionGame() {
   }, []);
 
   useEffect(() => {
+    // Calcular el impacto basado en las acciones
     const impact = Object.values(actions).reduce((sum, value) => sum + value, 0) * 0.01;
+  
+    // Actualizar temperatura y CO2
     setTemperature(prevTemp => Math.max(prevTemp - impact, -0.5));
     setCo2(prevCo2 => Math.max(prevCo2 - impact * 5, 280));
-    setScore(Math.round((1.02 - temperature) * 100));
-
+    
+    // Calcular la puntuación basada en la temperatura actual
+    setScore(Math.round((1.02 - (temperature - impact)) * 100)); // Usa temperature - impact para reflejar el cambio
+  
+    // Encontrar el evento climático actual
     const event = climateEvents.find(e => e.year === year);
     if (event) {
       setCurrentEvent(event.event);
     } else {
       setCurrentEvent("");
     }
-
+    
+    // Actualizar los datos del juego
     setGameData(prevData => {
       const newData = [...prevData];
       const lastIndex = newData.findIndex(d => d.year === year);
       if (lastIndex !== -1) {
-        newData[lastIndex] = { year, temperature, co2 };
+        newData[lastIndex] = { year, temperature: temperature - impact, co2: co2 - (impact * 5) }; // Actualiza los datos con la nueva temperatura y CO2
       } else {
-        newData.push({ year, temperature, co2 });
+        newData.push({ year, temperature: temperature - impact, co2: co2 - (impact * 5) });
       }
       return newData;
     });
-  }, [actions, temperature, co2, year]);
+  }, [actions, year, temperature, co2]); // Asegúrate de incluir todas las dependencias necesarias
+  
 
   const handleAction = (action) => {
     setActions(prev => ({ ...prev, [action]: prev[action] + 5 }));

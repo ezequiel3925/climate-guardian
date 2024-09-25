@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from './SimplifiedRecharts';
+import { Line } from 'react-chartjs-2';
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Progress } from "./ui/progress";
@@ -8,6 +8,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import './ClimateActionGame.css';
+import { Chart, registerables } from 'chart.js';
+
+// Chart.js setup
+const chartOptions = {
+  responsive: true,
+  scales: {
+    y: {
+      beginAtZero: true,
+    },
+  },
+};
 
 const fetchNASAData = async () => {
   return [
@@ -48,6 +59,14 @@ export default function ClimateActionGame() {
   const [isPromptDialogOpen, setIsPromptDialogOpen] = useState(false);
   const [nasaData, setNasaData] = useState([]);
   const [gameData, setGameData] = useState([]);
+
+
+  useEffect(() => {
+    Chart.register(...registerables); // Register Chart.js components
+  }, []);
+  
+
+
 
   useEffect(() => {
     const loadNASAData = async () => {
@@ -117,18 +136,28 @@ export default function ClimateActionGame() {
           </CardDescription>
         </CardHeader>
         <CardContent className="card-content">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={gameData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="year" />
-              <YAxis yAxisId="left" />
-              <YAxis yAxisId="right" orientation="right" />
-              <Tooltip />
-              <Legend />
-              <Line yAxisId="left" type="monotone" dataKey="temperature" name="Temperatura (°C)" stroke="#ff7300" />
-              <Line yAxisId="right" type="monotone" dataKey="co2" name="CO2 (ppm)" stroke="#82ca9d" />
-            </LineChart>
-          </ResponsiveContainer>
+          <Line
+            data={{
+              labels: gameData.map(data => data.year),
+              datasets: [
+                {
+                  label: 'Temperatura (°C)',
+                  data: gameData.map(data => data.temperature),
+                  borderColor: '#ff7300',
+                  backgroundColor: 'rgba(255, 115, 0, 0.2)',
+                  fill: true,
+                },
+                {
+                  label: 'CO2 (ppm)',
+                  data: gameData.map(data => data.co2),
+                  borderColor: '#82ca9d',
+                  backgroundColor: 'rgba(130, 202, 157, 0.2)',
+                  fill: true,
+                },
+              ],
+            }}
+            options={chartOptions}
+          />
         </CardContent>
         <CardFooter className="card-footer">
           <Button className="button" onClick={() => handleAction('renewableEnergy')}>

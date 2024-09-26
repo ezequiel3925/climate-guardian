@@ -317,41 +317,54 @@ export default function ClimateActionGame() {
   );
 
   const renderEnd = () => (
-    <Card className="card">
-      <CardHeader className="card-header">
-        <CardTitle className="card-title">¡Gracias por participar! 🎊</CardTitle>
-      </CardHeader>
-      <CardContent className="card-content">
-        <p>Has aprendido sobre el ODS 13: Acción por el Clima y cómo tus acciones pueden hacer una diferencia.</p>
-        <p>Recuerda que pequeños cambios en tu vida diaria pueden tener un gran impacto en nuestro planeta. 🌱</p>
-        <Tabs defaultValue="facts" className="mt-4">
-          <TabsList className="tabs">
-            <TabsTrigger value="facts" className="tab">Datos Curiosos</TabsTrigger>
-            <TabsTrigger value="actions" className="tab">Acciones Diarias</TabsTrigger>
-          </TabsList>
-          <TabsContent value="facts">
-            <ul className="list-disc pl-5 space-y-2">
-              <li>El 2016 fue el año más caluroso registrado hasta la fecha. 🌡️</li>
-              <li>Los océanos han absorbido más del 90% del exceso de calor de la Tierra. 🌊</li>
-              <li>El Ártico está perdiendo 13% de su hielo marino cada década. ❄️</li>
-              <li>Los niveles de CO2 son los más altos en 650,000 años. 📈</li>
-            </ul>
-          </TabsContent>
-          <TabsContent value="actions">
-            <ul className="list-disc pl-5 space-y-2">
-              <li>Usa transporte público o bicicleta cuando sea posible. 🚲</li>
-              <li>Reduce el consumo de carne, especialmente de res. 🥩</li>
-              <li>Ahorra energía apagando luces y dispositivos cuando no los uses. 💡</li>
-              <li>Recicla y reutiliza para reducir los desechos. ♻️</li>
-              <li>Planta árboles o apoya proyectos de reforestación. 🌳</li>
-            </ul>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-      <CardFooter className="card-footer">
-        <Button className="button" onClick={() => setGameState('start')}>Jugar de nuevo 🔄</Button>
-      </CardFooter>
-    </Card>
+    <div className="space-y-4">
+      <Card className="card">
+        <CardHeader className="card-header">
+          <CardTitle className="card-title">¡Gracias por participar! 🎊</CardTitle>
+        </CardHeader>
+        <CardContent className="card-content">
+          <p>Has aprendido sobre el ODS 13: Acción por el Clima y cómo tus acciones pueden hacer una diferencia.</p>
+          <p>Recuerda que pequeños cambios en tu vida diaria pueden tener un gran impacto en nuestro planeta. 🌱</p>
+          <Tabs defaultValue="facts" className="mt-4">
+            <TabsList className="tabs">
+              <TabsTrigger value="facts" className="tab">Datos Curiosos</TabsTrigger>
+              <TabsTrigger value="actions" className="tab">Acciones Diarias</TabsTrigger>
+            </TabsList>
+            <TabsContent value="facts">
+              <ul className="list-disc pl-5 space-y-2">
+                <li>El 2016 fue el año más caluroso registrado hasta la fecha. 🌡️</li>
+                <li>Los océanos han absorbido más del 90% del exceso de calor de la Tierra. 🌊</li>
+                <li>El Ártico está perdiendo 13% de su hielo marino cada década. ❄️</li>
+                <li>Los niveles de CO2 son los más altos en 650,000 años. 📈</li>
+              </ul>
+            </TabsContent>
+            <TabsContent value="actions">
+              <ul className="list-disc pl-5 space-y-2">
+                <li>Usa transporte público o bicicleta cuando sea posible. 🚲</li>
+                <li>Reduce el consumo de carne, especialmente de res. 🥩</li>
+                <li>Ahorra energía apagando luces y dispositivos cuando no los uses. 💡</li>
+                <li>Recicla y reutiliza para reducir los desechos. ♻️</li>
+                <li>Planta árboles o apoya proyectos de reforestación. 🌳</li>
+              </ul>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+        <CardFooter className="card-footer">
+          <Button className="button" onClick={() => setGameState('start')}>Jugar de nuevo 🔄</Button>
+        </CardFooter>
+      </Card>
+      <div className="w-full max-w-3xl mx-auto">
+        <div className="relative w-full" style={{ paddingBottom: '75%' }}>
+          <iframe 
+            className="absolute top-0 left-0 w-full h-full"
+            src="https://arcade.makecode.com/---run?id=_8717J3c2fDgm" 
+            allowFullScreen 
+            sandbox="allow-popups allow-forms allow-scripts allow-same-origin" 
+            frameBorder="0"
+          ></iframe>
+        </div>
+      </div>
+    </div>
   );
 
   return (
@@ -360,11 +373,15 @@ export default function ClimateActionGame() {
       {gameState === 'start' && (
         <Card className="card">
           <CardHeader className="card-header">
-            <CardTitle className="card-title">Bienvenido al Juego de Acción Climática 🌱</CardTitle>
+            
             <CardDescription className="card-description">Aprende sobre el cambio climático y cómo combatirlo</CardDescription>
           </CardHeader>
           <CardContent className="card-content">
-            <p>En este juego, tomarás decisiones para combatir el cambio climático. Usa los datos reales de la NASA para guiar tus acciones y ver el impacto de tus decisiones en el tiempo.</p>
+          <CardTitle className='text-center p-1'>Bienvenid@s</CardTitle>
+            <p className="text-xs text-muted-foreground">Es importante comprender la conexión directa entre las emisiones de dióxido de carbono (CO₂) liberadas a la atmósfera al quemar combustibles fósiles y el cambio climático. Cuando el CO₂ se acumula en la atmósfera, actúa como un gas de efecto invernadero, atrapando el calor y provocando un aumento gradual de la temperatura del planeta. Este calentamiento afecta especialmente a los océanos, alterando el equilibrio climático global y dando lugar a cambios significativos, como sequías más intensas, inundaciones más frecuentes y eventos climáticos extremos.
+
+</p>
+            <p>En este juego, tomarás decisiones para combatir el cambio climático. Veremos el impacto de tus decisiones en el tiempo.</p>
             <div className="mt-4">
               <h3 className="font-bold">¿Sabías que...? </h3>
               <ul className="list-disc pl-5 space-y-2">
@@ -372,7 +389,21 @@ export default function ClimateActionGame() {
                 <li>El nivel del mar está subiendo a un ritmo de 3.3 mm por año.</li>
                 <li>Los últimos 7 años han sido los más calurosos registrados en la historia.</li>
               </ul>
+              <h4 className='p-3 text-xs text-left'>
+                FUENTES:
+                <br />
+                NASA. (s.f.). Signos vitales: Dióxido de carbono (CO₂).
+                <a href="https://climate.nasa.gov/en-espanol/signos-vitales/dioxido-de-carbono/?intent=111" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">
+                  [Enlace]
+                </a>
+                <br />
+                NOAA. (s.f.). Mauna Loa observatorio.
+                <a href="https://gml.noaa.gov/obop/mlo/" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">
+                  [Enlace]
+                </a>
+              </h4>
             </div>
+            
           </CardContent>
           <CardFooter className="card-footer">
             <Button className="button" onClick={() => setGameState('play')}>Comenzar 🚀</Button>

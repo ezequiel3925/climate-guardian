@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Button } from "./ui/button";
@@ -8,22 +10,58 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import './ClimateActionGame.css';
-import { Chart, registerables } from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
+
+// Registramos los componentes necesarios de Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+// Configuración del gráfico
 const chartOptions = {
   responsive: true,
+  interaction: {
+    mode: 'index',
+    intersect: false,
+  },
+  stacked: false,
   scales: {
     y: {
-      beginAtZero: true,
+      type: 'linear',
+      display: true,
+      position: 'left',
       title: {
         display: true,
-        text: 'Temperatura (°C) / CO2 (ppm)',
+        text: 'Temperatura (°C)',
       },
       ticks: {
-        callback: function(value) {
-          return value.toFixed(2); // Mostrar los valores con dos decimales
+        callback: function (value) {
+          return value.toFixed(2);
         }
-      }
+      },
+      min: -0.5,
+      max: 2,
+    },
+    y1: {
+      type: 'linear',
+      display: true,
+      position: 'right',
+      title: {
+        display: true,
+        text: 'CO2 (ppm)',
+      },
+      grid: {
+        drawOnChartArea: false,
+      },
+      min: 250,
+      max: 450,
     },
     x: {
       title: {
@@ -39,17 +77,22 @@ const chartOptions = {
     },
     tooltip: {
       callbacks: {
-        label: function(context) {
-          const label = context.dataset.label || '';
-          const value = context.raw; // Obtiene el valor actual
-          return label ? `${label}: ${value}` : value;
+        label: function (context) {
+          let label = context.dataset.label || '';
+          if (label) {
+            label += ': ';
+          }
+          if (context.parsed.y !== null) {
+            label += context.parsed.y.toFixed(2);
+          }
+          return label;
         }
       }
     }
   }
 };
 
-
+// Función para simular la obtención de datos históricos
 const fetchNASAData = async () => {
   return [
     { year: 1880, temperature: -0.16, co2: 280.0 },
@@ -63,6 +106,7 @@ const fetchNASAData = async () => {
   ];
 };
 
+// Eventos climáticos importantes
 const climateEvents = [
   { year: 1992, event: "Cumbre de la Tierra en Río 🌎" },
   { year: 1997, event: "Protocolo de Kioto 📜" },
@@ -73,6 +117,7 @@ const climateEvents = [
 ];
 
 export default function ClimateActionGame() {
+  // Estados del juego
   const [gameState, setGameState] = useState('start');
   const [year, setYear] = useState(2020);
   const [temperature, setTemperature] = useState(1.02);
@@ -90,14 +135,7 @@ export default function ClimateActionGame() {
   const [nasaData, setNasaData] = useState([]);
   const [gameData, setGameData] = useState([]);
 
-
-  useEffect(() => {
-    Chart.register(...registerables); // Register Chart.js components
-  }, []);
-  
-
-
-
+  // Efecto para cargar los datos iniciales
   useEffect(() => {
     const loadNASAData = async () => {
       const data = await fetchNASAData();
@@ -107,44 +145,48 @@ export default function ClimateActionGame() {
     loadNASAData();
   }, []);
 
+  // Efecto para actualizar el estado del juego
   useEffect(() => {
-    // Calcular el impacto basado en las acciones
-    const impact = Object.values(actions).reduce((sum, value) => sum + value, 0) * 0.01;
-  
+    // Calcular el impacto de las acciones
+    const impact = Object.values(actions).reduce((sum, value) => sum + value, 0) * 0.001;
+
     // Actualizar temperatura y CO2
-    setTemperature(prevTemp => Math.max(prevTemp - impact, -0.5));
-    setCo2(prevCo2 => Math.max(prevCo2 - impact * 5, 280));
-    
-    // Calcular la puntuación basada en la temperatura actual
-    setScore(Math.round((1.02 - (temperature - impact)) * 100)); // Usa temperature - impact para reflejar el cambio
-  
-    // Encontrar el evento climático actual
+    setTemperature(prevTemp => {
+      const newTemp = prevTemp - impact;
+      return newTemp < 0.9 ? 0.9 : newTemp;
+    });
+    setCo2(prevCo2 => {
+      const newCo2 = prevCo2 - impact * 0.5;
+      return newCo2 < 280 ? 280 : newCo2;
+    });
+
+    // Calcular puntuación
+    setScore(Math.round((1.02 - temperature) * 100));
+
+    // Encontrar evento climático actual
     const event = climateEvents.find(e => e.year === year);
-    if (event) {
-      setCurrentEvent(event.event);
-    } else {
-      setCurrentEvent("");
-    }
-    
-    // Actualizar los datos del juego
+    setCurrentEvent(event ? event.event : "");
+
+    // Actualizar datos del juego
     setGameData(prevData => {
       const newData = [...prevData];
       const lastIndex = newData.findIndex(d => d.year === year);
       if (lastIndex !== -1) {
-        newData[lastIndex] = { year, temperature: temperature - impact, co2: co2 - (impact * 5) }; // Actualiza los datos con la nueva temperatura y CO2
+        newData[lastIndex] = { year, temperature: temperature - impact, co2: co2 - (impact * 5) };
       } else {
         newData.push({ year, temperature: temperature - impact, co2: co2 - (impact * 5) });
       }
       return newData;
     });
-  }, [actions, year, temperature, co2]); // Asegúrate de incluir todas las dependencias necesarias
-  
+  }, [actions, year, temperature, co2]);
 
+  // Manejar acciones del jugador
   const handleAction = (action) => {
     setActions(prev => ({ ...prev, [action]: prev[action] + 5 }));
     setYear(prev => prev + 1);
   };
 
+  // Generar pregunta aleatoria
   const generatePrompt = () => {
     const topics = [
       "impacto del aumento de temperatura en los ecosistemas",
@@ -161,6 +203,7 @@ export default function ClimateActionGame() {
     setIsPromptDialogOpen(true);
   };
 
+  // Renderizar el juego principal
   const renderGame = () => (
     <div className="space-y-4">
       <Card className="card">
@@ -183,14 +226,16 @@ export default function ClimateActionGame() {
                   data: gameData.map(data => data.temperature),
                   borderColor: '#ff7300',
                   backgroundColor: 'rgba(255, 115, 0, 0.2)',
-                  fill: true,
+                  yAxisID: 'y',
+                  tension: 0.4,
                 },
                 {
                   label: 'CO2 (ppm)',
                   data: gameData.map(data => data.co2),
                   borderColor: '#82ca9d',
                   backgroundColor: 'rgba(130, 202, 157, 0.2)',
-                  fill: true,
+                  yAxisID: 'y1',
+                  tension: 0.4,
                 },
               ],
             }}
@@ -260,7 +305,7 @@ export default function ClimateActionGame() {
             <CardDescription className="card-description">Tu puntuación: {score}</CardDescription>
           </CardHeader>
           <CardContent className="card-content">
-            {score > 50 ? 
+            {score > 50 ?
               "¡Excelente trabajo! 🌟 Has hecho una diferencia significativa en la lucha contra el cambio climático." :
               "Buen intento, pero aún hay mucho por hacer para combatir el cambio climático. ¡Inténtalo de nuevo! 💪"
             }
@@ -273,6 +318,7 @@ export default function ClimateActionGame() {
     </div>
   );
 
+  // Renderizar el cuestionario
   const renderQuiz = () => (
     <Card className="card">
       <CardHeader className="card-header">
@@ -316,6 +362,7 @@ export default function ClimateActionGame() {
     </Card>
   );
 
+  // Renderizar la pantalla final
   const renderEnd = () => (
     <div className="space-y-4">
       <Card className="card">
@@ -326,11 +373,12 @@ export default function ClimateActionGame() {
           <p>Has aprendido sobre el ODS 13: Acción por el Clima y cómo tus acciones pueden hacer una diferencia.</p>
           <p>Recuerda que pequeños cambios en tu vida diaria pueden tener un gran impacto en nuestro planeta. 🌱</p>
           <Tabs defaultValue="facts" className="mt-4">
-            <TabsList className="tabs">
-              <TabsTrigger value="facts" className="tab">Datos Curiosos</TabsTrigger>
-              <TabsTrigger value="actions" className="tab">Acciones Diarias</TabsTrigger>
+            <TabsList>
+              <TabsTrigger value="facts">Datos Curiosos</TabsTrigger>
+              <TabsTrigger value="actions">Acciones Diarias</TabsTrigger>
             </TabsList>
             <TabsContent value="facts">
+
               <ul className="list-disc pl-5 space-y-2">
                 <li>El 2016 fue el año más caluroso registrado hasta la fecha. 🌡️</li>
                 <li>Los océanos han absorbido más del 90% del exceso de calor de la Tierra. 🌊</li>
@@ -338,6 +386,8 @@ export default function ClimateActionGame() {
                 <li>Los niveles de CO2 son los más altos en 650,000 años. 📈</li>
               </ul>
             </TabsContent>
+
+
             <TabsContent value="actions">
               <ul className="list-disc pl-5 space-y-2">
                 <li>Usa transporte público o bicicleta cuando sea posible. 🚲</li>
@@ -347,6 +397,7 @@ export default function ClimateActionGame() {
                 <li>Planta árboles o apoya proyectos de reforestación. 🌳</li>
               </ul>
             </TabsContent>
+
           </Tabs>
         </CardContent>
         <CardFooter className="card-footer">
@@ -355,32 +406,32 @@ export default function ClimateActionGame() {
       </Card>
       <div className="w-full max-w-3xl mx-auto">
         <div className="relative w-full" style={{ paddingBottom: '75%' }}>
-          <iframe 
+          <iframe
             className="absolute top-0 left-0 w-full h-full"
-            src="https://arcade.makecode.com/---run?id=_8717J3c2fDgm" 
-            allowFullScreen 
-            sandbox="allow-popups allow-forms allow-scripts allow-same-origin" 
+            src="https://arcade.makecode.com/---run?id=_8717J3c2fDgm"
+            allowFullScreen
+            sandbox="allow-popups allow-forms allow-scripts allow-same-origin"
             frameBorder="0"
           ></iframe>
         </div>
       </div>
     </div>
+
+    
   );
 
+  // Renderizado principal del componente
   return (
     <div className="container">
       <h1 className="text-3xl font-bold mb-4">ODS 13: Acción por el Clima 🌍</h1>
       {gameState === 'start' && (
         <Card className="card">
           <CardHeader className="card-header">
-            
             <CardDescription className="card-description">Aprende sobre el cambio climático y cómo combatirlo</CardDescription>
           </CardHeader>
           <CardContent className="card-content">
-          <CardTitle className='text-center p-1'>Bienvenid@s</CardTitle>
-            <p className="text-xs text-muted-foreground">Es importante comprender la conexión directa entre las emisiones de dióxido de carbono (CO₂) liberadas a la atmósfera al quemar combustibles fósiles y el cambio climático. Cuando el CO₂ se acumula en la atmósfera, actúa como un gas de efecto invernadero, atrapando el calor y provocando un aumento gradual de la temperatura del planeta. Este calentamiento afecta especialmente a los océanos, alterando el equilibrio climático global y dando lugar a cambios significativos, como sequías más intensas, inundaciones más frecuentes y eventos climáticos extremos.
-
-</p>
+            <CardTitle className='text-center p-1'>Bienvenid@s</CardTitle>
+            <p className="text-xs text-muted-foreground">Es importante comprender la conexión directa entre las emisiones de dióxido de carbono (CO₂) liberadas a la atmósfera al quemar combustibles fósiles y el cambio climático. Cuando el CO₂ se acumula en la atmósfera, actúa como un gas de efecto invernadero, atrapando el calor y provocando un aumento gradual de la temperatura del planeta. Este calentamiento afecta especialmente a los océanos, alterando el equilibrio climático global y dando lugar a cambios significativos, como sequías más intensas, inundaciones más frecuentes y eventos climáticos extremos.</p>
             <p>En este juego, tomarás decisiones para combatir el cambio climático. Veremos el impacto de tus decisiones en el tiempo.</p>
             <div className="mt-4">
               <h3 className="font-bold">¿Sabías que...? </h3>
@@ -403,7 +454,6 @@ export default function ClimateActionGame() {
                 </a>
               </h4>
             </div>
-            
           </CardContent>
           <CardFooter className="card-footer">
             <Button className="button" onClick={() => setGameState('play')}>Comenzar 🚀</Button>
